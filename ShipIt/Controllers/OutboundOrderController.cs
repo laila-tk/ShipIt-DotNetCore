@@ -23,7 +23,7 @@ namespace ShipIt.Controllers
         }
 
         [HttpPost("")]
-        public void Post([FromBody] OutboundOrderRequestModel request)
+        public OutboundOrderResponse Post([FromBody] OutboundOrderRequestModel request)
         {
             Log.Info(String.Format("Processing outbound order: {0}", request));
 
@@ -35,7 +35,7 @@ namespace ShipIt.Controllers
                     throw new ValidationException(String.Format("Outbound order request contains duplicate product gtin: {0}", orderLine.gtin));
                 }
                 gtins.Add(orderLine.gtin);
-            }
+            }           
 
             var productDataModels = _productRepository.GetProductsByGtin(gtins);
             var products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
@@ -94,6 +94,17 @@ namespace ShipIt.Controllers
             }
 
             _stockRepository.RemoveStock(request.WarehouseId, lineItems);
+            
+            double totalOutboundOrderWeight = 0;
+            foreach (var product in products)
+            {
+                totalOutboundOrderWeight += product.Value.Weight;
+            }
+
+            return new OutboundOrderResponse()
+            {
+                NumberOfTrucks = Convert.ToInt32(Math.Ceiling(totalOutboundOrderWeight * 1000) / 2000)
+            };
         }
     }
 }
