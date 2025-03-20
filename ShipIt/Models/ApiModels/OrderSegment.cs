@@ -19,9 +19,16 @@ namespace ShipIt.Models.ApiModels
         public List<InboundOrderLine> OrderLines { get; set; }
         public Company Company { get; set; }
     }
+}
 
-    public class StockProduct :DataModel
+
+namespace ShipIt.Models.DataModels
+{
+    public class StockProduct : DataModel
     {
+        [DatabaseColumnName("w_id")]
+        public int WarehouseId { get; set; }
+
         [DatabaseColumnName("p_id")]
         public int ProductId { get; set; }
 
@@ -67,7 +74,7 @@ namespace ShipIt.Models.ApiModels
         [DatabaseColumnName("contact_mail")]
         public string Mail { get; set; }
 
-        public StockProduct(IDataReader dataReader): base(dataReader) { }
+        public StockProduct(IDataReader dataReader) : base(dataReader) { }
 
 
     }

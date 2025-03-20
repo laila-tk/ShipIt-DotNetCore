@@ -64,9 +64,9 @@ namespace ShipIt.Repositories
 
         public Dictionary<int, StockProduct> GetStockByWarehouseIdWithProducts(int warehouseId)
         {            
-            string sql = string.Format("SELECT gtin.p_id, gtin.gtin_cd,gtin.gtin_nm, stock.hld, gtin.l_th, gtin.min_qt , gcp.* FROM stock join gtin on stock.p_id = gtin.p_id join gcp on gcp.gcp_cd = gtin.gcp_cd where stock.w_id = @w_id and stock.hld < gtin.l_th and gtin.ds = 0");
+            string sql = string.Format("SELECT stock.w_id, gtin.p_id, gtin.gtin_cd,gtin.gtin_nm, stock.hld, gtin.l_th, gtin.min_qt , gcp.* FROM stock join gtin on stock.p_id = gtin.p_id join gcp on gcp.gcp_cd = gtin.gcp_cd where stock.w_id = @w_id and stock.hld < gtin.l_th and gtin.ds = 0");
             var parameter = new NpgsqlParameter("@w_id", warehouseId);
-            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0}",warehouseId);
+            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: @w_id");
             var stock = base.RunGetQuery(sql, reader => new StockProduct(reader), noProductWithIdErrorMessage, parameter);
             return stock.ToDictionary(s => s.ProductId, s => s);
         }
