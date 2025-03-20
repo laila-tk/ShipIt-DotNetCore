@@ -14,6 +14,7 @@ namespace ShipIt.Repositories
         int GetTrackedItemsCount();
         int GetStockHeldSum();
         IEnumerable<StockDataModel> GetStockByWarehouseId(int id);
+        Dictionary<int, StockProduct> GetStockByWarehouseIdWithProducts(int warehouseId);
         Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds);
         void RemoveStock(int warehouseId, List<StockAlteration> lineItems);
         void AddStock(int warehouseId, List<StockAlteration> lineItems);
@@ -57,6 +58,16 @@ namespace ShipIt.Repositories
             string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0} and p_ids: {1}",
                 warehouseId, String.Join(",", productIds));
             var stock = base.RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter);
+            return stock.ToDictionary(s => s.ProductId, s => s);
+        }
+
+
+        public Dictionary<int, StockProduct> GetStockByWarehouseIdWithProducts(int warehouseId)
+        {            
+            string sql = string.Format("SELECT stock.w_id, gtin.p_id, gtin.gtin_cd,gtin.gtin_nm, stock.hld, gtin.l_th, gtin.min_qt , gcp.* FROM stock join gtin on stock.p_id = gtin.p_id join gcp on gcp.gcp_cd = gtin.gcp_cd where stock.w_id = @w_id and stock.hld < gtin.l_th and gtin.ds = 0");
+            var parameter = new NpgsqlParameter("@w_id", warehouseId);
+            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: @w_id");
+            var stock = base.RunGetQuery(sql, reader => new StockProduct(reader), noProductWithIdErrorMessage, parameter);
             return stock.ToDictionary(s => s.ProductId, s => s);
         }
             
@@ -118,5 +129,7 @@ namespace ShipIt.Repositories
 
             base.RunTransaction(sql, parametersList);
         }
+
+      
     }
 }
